@@ -1,0 +1,13 @@
+COLUMNS:
+  Clock: datetime64[ns]
+  sensor: object
+  Kwh: float64
+  R_Voltage: float64
+  Y_Voltage: float64
+  B_Voltage: float64
+  R_Current: float64
+  Y_Current: float64
+  B_Current: float64
+
+TARGET_COLUMN:
+  Kwh: float64
