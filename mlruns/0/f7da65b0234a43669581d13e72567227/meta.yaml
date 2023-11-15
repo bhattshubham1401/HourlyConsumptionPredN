@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/f7da65b0234a43669581d13e72567227/artifacts
+end_time: 1699987629348
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: f7da65b0234a43669581d13e72567227
+run_name: hilarious-quail-206
+run_uuid: f7da65b0234a43669581d13e72567227
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1699987629319
+status: 4
+tags: []
+user_id: Shubham Bhatt

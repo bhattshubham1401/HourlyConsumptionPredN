@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/93e731000769427fad3ecb175299cf60/artifacts
+end_time: 1700026369389
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 93e731000769427fad3ecb175299cf60
+run_name: resilient-sow-760
+run_uuid: 93e731000769427fad3ecb175299cf60
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1700026365119
+status: 3
+tags: []
+user_id: Shubham Bhatt

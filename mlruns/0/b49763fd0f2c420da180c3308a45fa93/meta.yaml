@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/b49763fd0f2c420da180c3308a45fa93/artifacts
+end_time: 1700026734305
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: b49763fd0f2c420da180c3308a45fa93
+run_name: kindly-elk-578
+run_uuid: b49763fd0f2c420da180c3308a45fa93
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1700026730935
+status: 3
+tags: []
+user_id: Shubham Bhatt

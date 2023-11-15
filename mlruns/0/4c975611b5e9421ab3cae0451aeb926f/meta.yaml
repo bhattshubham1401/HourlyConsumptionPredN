@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/4c975611b5e9421ab3cae0451aeb926f/artifacts
+end_time: 1700025808544
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 4c975611b5e9421ab3cae0451aeb926f
+run_name: sneaky-crab-410
+run_uuid: 4c975611b5e9421ab3cae0451aeb926f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1700025803015
+status: 3
+tags: []
+user_id: Shubham Bhatt

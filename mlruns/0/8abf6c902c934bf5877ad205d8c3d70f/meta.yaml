@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/8abf6c902c934bf5877ad205d8c3d70f/artifacts
+end_time: 1699987483745
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 8abf6c902c934bf5877ad205d8c3d70f
+run_name: tasteful-jay-377
+run_uuid: 8abf6c902c934bf5877ad205d8c3d70f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1699987483712
+status: 4
+tags: []
+user_id: Shubham Bhatt

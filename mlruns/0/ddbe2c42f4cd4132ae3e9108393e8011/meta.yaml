@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/ddbe2c42f4cd4132ae3e9108393e8011/artifacts
+end_time: 1699986910112
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ddbe2c42f4cd4132ae3e9108393e8011
+run_name: skillful-shark-513
+run_uuid: ddbe2c42f4cd4132ae3e9108393e8011
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1699986910072
+status: 4
+tags: []
+user_id: Shubham Bhatt

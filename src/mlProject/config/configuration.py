@@ -1,5 +1,6 @@
 from src.mlProject.constants import *
-from src.mlProject.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig,ModelTrainerConfig
+from src.mlProject.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig, \
+    ModelTrainerConfig, ModelEvaluationConfig
 from src.mlProject.utils.common import read_yaml, create_directories
 
 
@@ -51,21 +52,40 @@ class ConfigurationManager:
         return data_transformation_config
 
     def get_model_trainer_config(self) -> ModelTrainerConfig:
-
         config = self.config.model_trainer
         params = self.params.XG_Boost
         schema = self.schema.TARGET_COLUMN
         create_directories([config.root_dir])
 
         model_trainer_config = ModelTrainerConfig(
-            root_dir = config.root_dir,
-            train_data_path = config.train_data_path,
-            test_data_path = config.test_data_path,
-            model_name = config.model_name,
-            n_estimators = params.n_estimators,
-            max_depth = params.max_depth,
-            learning_rate = params.learning_rate,
-            target_column = schema.Kwh
+            root_dir=config.root_dir,
+            train_data_path=config.train_data_path,
+            test_data_path=config.test_data_path,
+            model_name=config.model_name,
+            subsample=params.subsample,
+            colsample_bytree=params.colsample_bytree,
+            n_estimators=params.n_estimators,
+            max_depth=params.max_depth,
+            learning_rate=params.learning_rate,
+            target_column=schema.Kwh
         )
         return model_trainer_config
 
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+        config = self.config.model_evaluation
+        params = self.params.XG_Boost
+        schema = self.schema.TARGET_COLUMN
+
+        create_directories([config.root_dir])
+
+        model_evaluation_config = ModelEvaluationConfig(
+            root_dir=config.root_dir,
+            test_data_path=config.test_data_path,
+            model_path=config.model_path,
+            all_params=params,
+            metric_file_name=config.metric_file_name,
+            target_column=schema.Kwh,
+            mlflow_uri="https://dagshub.com/bhattshubham1401/HourlyConsumptionPredN.mlflow"
+
+        )
+        return model_evaluation_config

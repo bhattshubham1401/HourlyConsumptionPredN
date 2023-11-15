@@ -39,6 +39,7 @@ class Datatransformation:
         try:
             df1 = pd.read_parquet(self.config.data_dir)
             # print(df1)
+            df1['Kwh'] = df1['Kwh']/1000
             sensor = df1['sensor'].unique()
 
             for items in sensor:
@@ -60,6 +61,7 @@ class Datatransformation:
 
                 '''Resampling dataframe into one hour interval '''
                 dfresample = sensor_df[['Kwh']].resample(rule='1H').sum()
+                dfresample['Kwh'] = dfresample['Kwh'].rolling(window=24).mean()
                 dfresample['sensor'] = items
 
                 # print(dfresample)
