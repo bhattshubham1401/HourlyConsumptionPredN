@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from urllib.parse import urlparse
 from src.mlProject import logger
@@ -12,7 +13,6 @@ import traceback
 from src.mlProject.entity.config_entity import ModelEvaluationConfig
 from src.mlProject.utils.common import save_json
 
-
 class ModelEvaluation:
     def __init__(self, config: ModelEvaluationConfig):
         self.config = config
@@ -23,34 +23,61 @@ class ModelEvaluation:
         r2 = r2_score(actual, pred)
         return rmse, mae, r2
 
+    def save_model_as_dict(self, models_dict):
+        # Save the model as a dictionary
+        joblib.dump(models_dict, self.config.model_path)
+
+    def load_model_as_dict(self):
+        # Load the model as a dictionary
+        return joblib.load(self.config.model_path)
+
     def log_into_mlflow(self):
         try:
-            test_data = pd.read_csv(self.config.test_data_path)
+            data_files = [file for file in os.listdir(self.config.test_data_path) if file.startswith('test')]
+            test_data_list = []
+            for data_file in data_files:
+                test_data_sensor = pd.read_csv(os.path.join(self.config.test_data_path, data_file))
+                test_data_list.append(test_data_sensor)
+
+            # Concatenate data for all sensors
+            test_data = pd.concat(test_data_list, ignore_index=True)
 
             # Load the model as a dictionary
-            models_dict = joblib.load(self.config.model_path)
+            loaded_model_dict = self.load_model_as_dict()
+
+            # Check if the loaded model is a dictionary
+            if not isinstance(loaded_model_dict, dict):
+                logger.warning("Loaded model is not a dictionary.")
+                return
 
             mlflow.set_registry_uri(self.config.mlflow_uri)
             tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
             for sensor_id in test_data['sensor'].unique():
-                # Retrieve the specific model for the current sensor
-                model = models_dict.get(sensor_id)
+                model = loaded_model_dict.get(str(sensor_id))
 
                 if model is None:
-                    # Handle the case where the model for the current sensor is not found
                     logger.warning(f"Model for sensor {sensor_id} not found.")
                     continue
 
                 # Filter data for the current sensor
                 sensor_data = test_data[test_data['sensor'] == sensor_id]
-                test_x = sensor_data.drop(['sensor', 'Kwh'], axis=1)
+                test_x = sensor_data.drop(['Kwh'], axis=1)
                 test_y = sensor_data['Kwh']
 
                 with mlflow.start_run():
-                    predicted_qualities = model.predict(test_x)
+                    predicted_kwh = model.predict(test_x)
+                    (rmse, mae, r2) = self.eval_metrics(test_y, predicted_kwh)
 
-                    (rmse, mae, r2) = self.eval_metrics(test_y, predicted_qualities)
+                    # Log predictions to a CSV file
+                    predictions_df = pd.DataFrame({"actual_kwh": test_y, "predicted_kwh": predicted_kwh})
+                    predictions_file_path = "predictions_sensor_{}.csv".format(sensor_id)
+                    predictions_df.to_csv(predictions_file_path, index=False)
+
+                    # Log the CSV file to MLflow
+                    mlflow.log_artifact(predictions_file_path)
+
+                    (rmse, mae, r2) = self.eval_metrics(test_y, predicted_kwh)
 
                     # Saving metrics as local
                     scores = {"rmse": rmse, "mae": mae, "r2": r2}
@@ -70,5 +97,5 @@ class ModelEvaluation:
                         mlflow.sklearn.log_model(model, "model")
 
         except Exception as e:
+            logger.error(f"Error in Model Evaluation: {e}")
             print(traceback.format_exc())
-            logger.info(f"Error occur in Model Evaluation {e}")

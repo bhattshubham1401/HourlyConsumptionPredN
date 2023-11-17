@@ -1,5 +1,5 @@
 from src.mlProject import logger
-from src.mlProject.components.data_transformation import Datatransformation
+from src.mlProject.components.data_transformation import DataTransformation
 from src.mlProject.config.configuration import ConfigurationManager
 
 STAGE_NAME = "Data Transformation"
@@ -14,10 +14,8 @@ class DataTransformationTrainingPipeline:
             config = ConfigurationManager()
             data_transformation_config = config.get_data_transformation_config()
             # print(data_transformation_config)
-            data_transformation = Datatransformation(config=data_transformation_config)
-            print(data_transformation)
-
-            data_transformation.initiateDateTransformation()
+            data_transformation = DataTransformation(config=data_transformation_config)
+            data_transformation.initiate_data_transformation()
         except Exception as e:
             logger.info(f"Error Occur in Data Transformation Pipeline {e}")
 

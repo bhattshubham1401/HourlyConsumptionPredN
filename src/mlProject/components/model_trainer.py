@@ -1,50 +1,38 @@
 import os
 import traceback
-
 import joblib
 import pandas as pd
-from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBRegressor
-
 from src.mlProject import logger
 from src.mlProject.entity.config_entity import ModelTrainerConfig
-
 
 class ModelTrainer:
     def __init__(self, config: ModelTrainerConfig):
         self.config = config
-        self.best_models = {}
 
     def train(self):
         try:
-            train_data = pd.read_csv(self.config.train_data_path)
-            test_data = pd.read_csv(self.config.test_data_path)
+            data_files = [file for file in os.listdir(self.config.train_data_path) if file.startswith('train')]
 
-            for sensor_id in train_data['sensor'].unique():
-                # Filter data for the current sensor
-                train_data_sensor = train_data[train_data['sensor'] == sensor_id]
-                test_data_sensor = test_data[test_data['sensor'] == sensor_id]
+            models_dict = {}  # Dictionary to store models
+
+            for data_file in data_files:
+                train_data_sensor = pd.read_csv(os.path.join(self.config.train_data_path, data_file))
 
                 # Separate features and target
-                X_train = train_data_sensor.drop(['sensor', 'Kwh'], axis=1)
+                X_train = train_data_sensor.drop(['Kwh'], axis=1)
                 y_train = train_data_sensor['Kwh']
 
-                X_test = test_data_sensor.drop(['sensor', 'Kwh'], axis=1)
-                y_test = test_data_sensor['Kwh']
-
-                # Reuse the same XGBoost instance for training and hyperparameter tuning
+                # Train an XGBoost model on the sensor's data
                 xgb_model = XGBRegressor()
-
-                # Train an XGBoost model for this sensor
                 xgb_model.fit(X_train, y_train)
 
                 # Calculate and print model evaluation metrics for this sensor
                 train_score = xgb_model.score(X_train, y_train)
-                test_score = xgb_model.score(X_test, y_test)
-                print(f"Sensor {sensor_id} - Train Score: {train_score}, Test Score: {test_score}")
+                print(f"Train Score for sensor {data_file}: {train_score}")
 
-                # Perform hyperparameter tuning using GridSearchCV
-                param_grid = {
+                # Perform hyperparameter tuning using RandomizedSearchCV
+                best_params = {
                     'n_estimators': self.config.n_estimators,
                     'max_depth': self.config.max_depth,
                     'learning_rate': self.config.learning_rate,
@@ -52,22 +40,22 @@ class ModelTrainer:
                     'colsample_bytree': self.config.colsample_bytree
                 }
 
-                # Initialize GridSearchCV
-                grid_search = RandomizedSearchCV(xgb_model,
-                                                 param_distributions=param_grid,
-                                                 n_iter=10,
-                                                 scoring='accuracy',
-                                                 cv=5,
-                                                 verbose=1,
-                                                 n_jobs=-1,
-                                                 random_state=42)
-
-                # Fit the GridSearchCV to the data
-                grid_search.fit(X_train, y_train)
-
-                # Get the best parameters
-                best_params = grid_search.best_params_
-                print(f"Best Parameters for Sensor {sensor_id}: {best_params}")
+                # Initialize RandomizedSearchCV
+                # random_search = RandomizedSearchCV(xgb_model,
+                #                                    param_distributions=param_grid,
+                #                                    n_iter=10,
+                #                                    scoring='neg_mean_squared_error',
+                #                                    cv=5,
+                #                                    verbose=1,
+                #                                    n_jobs=-1,
+                #                                    random_state=42)
+                #
+                # # Fit the RandomizedSearchCV to the data
+                # random_search.fit(X_train, y_train)
+                #
+                # # Get the best parameters
+                # best_params = random_search.best_params_
+                # print(f"Best Parameters for sensor {data_file}: {best_params}")
 
                 # Train the model with the best parameters
                 best_xgb_model = XGBRegressor(n_estimators=best_params['n_estimators'],
@@ -79,17 +67,15 @@ class ModelTrainer:
                                               reg_lambda=0.01)
                 best_xgb_model.fit(X_train, y_train)
 
-                # Save the best model for each sensor in the dictionary
-                self.best_models[sensor_id] = best_xgb_model
+                # Store the best model for this sensor in the dictionary
+                sensor_id = data_file.split("_")[-1].split(".")[0]
+                models_dict[sensor_id] = best_xgb_model
 
-            # Save the dictionary of best models into a single joblib file
-            joblib.dump(self.best_models, os.path.join(self.config.root_dir, self.config.model_name))
+                # Log information about the best model
+                logger.info(f"Best Model for sensor {data_file} - Best Parameters: {best_xgb_model.get_params()}, Train Score: {train_score}")
 
-            # Log information about the best models
-            logger.info("Best Models:")
-            for sensor_id, model in self.best_models.items():
-                logger.info(
-                    f"Sensor {sensor_id} - Best Parameters: {model.get_params()}, Score: {model.score(X_test, y_test)}")
+            # Save the dictionary of models as a single .joblib file
+            joblib.dump(models_dict, os.path.join(self.config.root_dir, self.config.model_name))
 
         except Exception as e:
             traceback.print_exc()

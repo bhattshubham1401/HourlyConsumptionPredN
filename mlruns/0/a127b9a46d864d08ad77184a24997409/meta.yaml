@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/HourlyModel/mlruns/0/a127b9a46d864d08ad77184a24997409/artifacts
+end_time: 1700198290459
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: a127b9a46d864d08ad77184a24997409
+run_name: dapper-bee-749
+run_uuid: a127b9a46d864d08ad77184a24997409
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1700198287175
+status: 3
+tags: []
+user_id: Shubham Bhatt

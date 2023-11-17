@@ -1,7 +1,6 @@
 COLUMNS:
   Clock: datetime64[ns]
   sensor: object
-  Kwh: float64
   R_Voltage: float64
   Y_Voltage: float64
   B_Voltage: float64

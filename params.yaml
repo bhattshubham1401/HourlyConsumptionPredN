@@ -1,6 +1,6 @@
 XG_Boost:
-    n_estimators: [50, 100, 200, 300]
-    max_depth: [None, 10, 20, 30]
-    learning_rate : [0.01, 0.1, 0.2, 0.3]
-    subsample: [0.8, 0.9, 1.0]
-    colsample_bytree: [0.8, 0.9, 1.0]
+    n_estimators: [200]
+    max_depth: [30]
+    learning_rate : [0.3]
+    subsample: [1.0]
+    colsample_bytree: [0.9]
