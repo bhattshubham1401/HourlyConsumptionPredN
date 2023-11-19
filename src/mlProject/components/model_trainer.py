@@ -1,10 +1,14 @@
 import os
 import traceback
+
 import joblib
 import pandas as pd
+from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBRegressor
+
 from src.mlProject import logger
 from src.mlProject.entity.config_entity import ModelTrainerConfig
+
 
 class ModelTrainer:
     def __init__(self, config: ModelTrainerConfig):
@@ -32,7 +36,7 @@ class ModelTrainer:
                 print(f"Train Score for sensor {data_file}: {train_score}")
 
                 # Perform hyperparameter tuning using RandomizedSearchCV
-                best_params = {
+                param_grid = {
                     'n_estimators': self.config.n_estimators,
                     'max_depth': self.config.max_depth,
                     'learning_rate': self.config.learning_rate,
@@ -41,21 +45,21 @@ class ModelTrainer:
                 }
 
                 # Initialize RandomizedSearchCV
-                # random_search = RandomizedSearchCV(xgb_model,
-                #                                    param_distributions=param_grid,
-                #                                    n_iter=10,
-                #                                    scoring='neg_mean_squared_error',
-                #                                    cv=5,
-                #                                    verbose=1,
-                #                                    n_jobs=-1,
-                #                                    random_state=42)
-                #
-                # # Fit the RandomizedSearchCV to the data
-                # random_search.fit(X_train, y_train)
-                #
-                # # Get the best parameters
-                # best_params = random_search.best_params_
-                # print(f"Best Parameters for sensor {data_file}: {best_params}")
+                random_search = RandomizedSearchCV(xgb_model,
+                                                   param_distributions=param_grid,
+                                                   n_iter=10,
+                                                   scoring='neg_mean_squared_error',
+                                                   cv=5,
+                                                   verbose=1,
+                                                   n_jobs=-1,
+                                                   random_state=42)
+
+                # Fit the RandomizedSearchCV to the data
+                random_search.fit(X_train, y_train)
+
+                # Get the best parameters
+                best_params = random_search.best_params_
+                print(f"Best Parameters for sensor {data_file}: {best_params}")
 
                 # Train the model with the best parameters
                 best_xgb_model = XGBRegressor(n_estimators=best_params['n_estimators'],
@@ -72,7 +76,8 @@ class ModelTrainer:
                 models_dict[sensor_id] = best_xgb_model
 
                 # Log information about the best model
-                logger.info(f"Best Model for sensor {data_file} - Best Parameters: {best_xgb_model.get_params()}, Train Score: {train_score}")
+                logger.info(
+                    f"Best Model for sensor {data_file} - Best Parameters: {best_xgb_model.get_params()}, Train Score: {train_score}")
 
             # Save the dictionary of models as a single .joblib file
             joblib.dump(models_dict, os.path.join(self.config.root_dir, self.config.model_name))

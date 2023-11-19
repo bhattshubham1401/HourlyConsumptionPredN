@@ -47,10 +47,8 @@ class DataTransformation:
             le = LabelEncoder()
             df1['sensor'] = le.fit_transform(df1['sensor'])
 
-            #
             sensor = df1['sensor'].unique()
 
-            #
             for items in sensor:
                 df = df1[['sensor', 'Clock', 'Kwh', 'R_Voltage', 'Y_Voltage', 'B_Voltage', 'R_Current', 'Y_Current',
                           'B_Current']]
@@ -147,14 +145,14 @@ class DataTransformation:
                 #     train_data = train[FEATURES + TARGET]
                 #     test_data = test[FEATURES + TARGET]
                 #
-                #     train_data_filepath = os.path.join(self.config.root_dir, f"train_data_sensor_{items}.csv")
-                #     test_data_filepath = os.path.join(self.config.root_dir, f"test_data_sensor_{items}.csv")
-                #
-                #     # Write data to separate train and test files for each sensor
-                #     train_data.to_csv(train_data_filepath, mode='a', header=not os.path.exists(train_data_filepath),
-                #                       index=False)
-                #     test_data.to_csv(test_data_filepath, mode='a', header=not os.path.exists(test_data_filepath),
-                #                      index=False)
+                train_data_filepath = os.path.join(self.config.root_dir, f"train_data_sensor_{items}.csv")
+                test_data_filepath = os.path.join(self.config.root_dir, f"test_data_sensor_{items}.csv")
+
+                # Write data to separate train and test files for each sensor
+                train_data.to_csv(train_data_filepath, mode='a', header=not os.path.exists(train_data_filepath),
+                                  index=False)
+                test_data.to_csv(test_data_filepath, mode='a', header=not os.path.exists(test_data_filepath),
+                                 index=False)
 
         except Exception as e:
             print(traceback.format_exc())

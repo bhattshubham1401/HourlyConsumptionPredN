@@ -7,17 +7,17 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import plotly.express as px
 import yaml
 from box import ConfigBox
 from box.exceptions import BoxValueError
 from dotenv import load_dotenv
 from ensure import ensure_annotations
 from pymongo import MongoClient
-
 from src.mlProject import logger
-import matplotlib.pyplot as plt
-import plotly.express as px
 
 load_dotenv()
 
@@ -165,15 +165,17 @@ def get_mongoData():
         collection = db1[collection]
 
         data = collection.find({})
+
         columns = ['sensor', 'Clock', 'R_Voltage', 'Y_Voltage', 'B_Voltage', 'R_Current', 'Y_Current',
                    'B_Current', 'A', 'BlockEnergy-WhExp', 'B', 'C', 'D', 'BlockEnergy-VAhExp',
                    'Kwh', 'BlockEnergy-VArhQ1', 'BlockEnergy-VArhQ4', 'BlockEnergy-VAhImp']
 
         datalist = [(entry['sensor_id'], entry['raw_data']) for entry in data]
         df = pd.DataFrame([row[0].split(',') + row[1].split(',') for row in datalist], columns=columns)
-
         '''Dropping Columns'''
-        df = df.drop(['BlockEnergy-WhExp','A','B','C','D','BlockEnergy-VAhExp','BlockEnergy-VAhExp','BlockEnergy-VArhQ1', 'BlockEnergy-VArhQ4', 'BlockEnergy-VAhImp'], axis=1)
+        df = df.drop(
+            ['BlockEnergy-WhExp', 'A', 'B', 'C', 'D', 'BlockEnergy-VAhExp', 'BlockEnergy-VAhExp', 'BlockEnergy-VArhQ1',
+             'BlockEnergy-VArhQ4', 'BlockEnergy-VAhImp'], axis=1)
         pd.set_option('display.max_columns', None)
 
         # print("===============DataType Conversion==================")
@@ -185,6 +187,7 @@ def get_mongoData():
         df['R_Current'] = df['R_Current'].astype(float)
         df['Y_Current'] = df['Y_Current'].astype(float)
         df['B_Current'] = df['B_Current'].astype(float)
+
         return df
 
     except Exception as e:
@@ -245,3 +248,60 @@ def sliderPlot(df1):
     )
     fig.show()
     return
+
+
+@ensure_annotations
+def store_predictions_in_mongodb(sensor_id, dates, predictions):
+    try:
+        logger.info("calling DB configuration")
+        db = os.getenv("db")
+        host = os.getenv("host")
+        port = os.getenv("port")
+        collection = os.getenv("collection1")
+
+        MONGO_URL = f"mongodb://{host}:{port}"
+
+        ''' Read data from DB'''
+
+        '''Writing logs'''
+        logger.info("Inserting Prediction data in Mongo DB")
+        labeled_to_original_mapping = {
+            0: "5f718c439c7a78.65267835",
+            1: "62a9920f75c931.62399458",
+        }
+
+        # Use the labeled sensor ID to get the original sensor ID
+        original_sensor_id = labeled_to_original_mapping.get(sensor_id, sensor_id)
+
+        data = {
+            "_id": f"{original_sensor_id}_{datetime.now().strftime('%Y-%m-%d')}",
+            "sensor_id": original_sensor_id,
+            "creation_time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "millisecond": int(datetime.now().timestamp() * 1000),
+            "data": {}
+        }
+
+        # Populate the 'data' dictionary with hourly predictions
+        for i, date_str in enumerate(dates):
+            prediction_float = round(float(predictions[i]), 4)
+            data["data"][f"{i}"] = {
+                "pre_kwh": prediction_float,
+                "pre_current": 0.0,
+                "pre_load": 0.0,
+                "act_kwh": 0.0,
+                "act_load": 0.0
+            }
+        data_dict = {key: float(value) if isinstance(value, (float, np.integer, float, np.floating)) else value for
+                     key, value
+                     in data.items()}
+        # print("Data Dictionary:", data_dict)
+
+        # Connect to MongoDB
+        client = MongoClient(MONGO_URL)
+        db1 = client[db]
+        collection = db1[collection]
+        # Insert data into MongoDB
+        collection.insert_one(data_dict)
+        client.close()
+    except Exception as e:
+        print(e)

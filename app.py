@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 
 from flask import Flask, render_template, request
@@ -26,8 +27,8 @@ def index():
         try:
 
             #  reading the inputs given by the user
-            Clock = datetime(request.form['Clock'])
-            sensor = object(request.form['sensor'])
+            Clock = datetime.strptime(request.form['Clock'], '%Y-%m-%d')
+            sensor = str(request.form['sensor'])
             R_Voltage = float(request.form['R_Voltage'])
             Y_Voltage = float(request.form['Y_Voltage'])
             B_Voltage = float(request.form['B_Voltage'])
@@ -44,9 +45,9 @@ def index():
             return render_template('results.html', prediction=str(predict))
 
         except Exception as e:
-            print("hello")
+            print(traceback.format_exc())
             print('The Exception message is: ', e)
-            return 'something is wrongxxxxxxxxxxxxxxxxxxx'
+            return 'something is wrong'
 
     else:
         return render_template('index.html')
